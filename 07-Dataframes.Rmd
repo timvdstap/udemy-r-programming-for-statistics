@@ -64,4 +64,121 @@ my.pok <- read.csv("./data_files/pokRdex_comma.csv", stringsAsFactors = F)
 # To skip a specified number of rows: read.csv(..., skip = n). Or, if you want R to read in a specific number of rows: read.csv(..., nrows = n) (header not included)
 ```
 
+To share data files. Make sure to set row.names to `FALSE`, otherwise R will add a column (X, X.1 and so on) marking each row from 1 - n. But those numbers _should not_ be part of your data! This would create too many redundant columns. 
+
+```{r}
+write.csv(data, file = , row.names = )
+write.csv(my.data, file = "MyFirstDataFrame.csv", row.names = F)
+
+# For table-delimited table:
+write.table(data, file = , row.names = )
+```
+
+Exercise 17:
+
+```{r exercise 17}
+employee <- read.csv("./data_files/employee_data.csv", stringsAsFactors = F, skip = 23, nrows = 200)
+colnames(employee) <- c("Employee number", "First name", "Last name", "Birth date", "Gender", "Job title", 
+                        "Salary", "From date", "To date")
+write.csv(employee, file = "EmployeeData.csv", row.names = F)
+
+# Read it back in to make sure it's done correctly:
+employee <- read.csv("EmployeeData.csv", stringsAsFactors = F)
+```
+
+Useful ways to get a quick glimpse of what the data includes. str() gives the compact version of your data structure. summary() is a multi-purpose statistic. For numerical data is provides essential descriptive statistics. Summary() can be used on a single variable or multiple variables. 
+
+```{r}
+nrow(my.pok)
+ncol(my.pok)
+
+colnames(my.pok)
+summary(my.pok) 
+```
+
+Subsetting dataframes. To index an element, use data[row, column]. Remember that data frames are 2D lists. Consider this when indexing and subsetting. Lists can be subsetted with the $ function, and so data frames as well. 
+
+```{r subsetting dataframes}
+library(tidyverse)
+my.wars <- as.data.frame(starwars)
+
+# Remove last three columns:
+my.wars <- my.wars[ , -c(12:14)]
+
+# Show first or last 6 observation rows:
+head(my.wars)
+tail(my.wars)
+
+my.wars[3, "homeworld"]
+my.wars[5, ]
+
+head(my.wars[, "name"]) # returns a data frame with elements.
+head(my.wars[, 1])
+head(my.wars[["name"]]) # returns a vector!
+head(my.wars$name) # returns a vector!
+my.wars["name"] # returns a dataframe
+
+my.wars[c(1:14), c("name", "homeworld", "species")] # also returns a dataframe
+```
+
+When adding observations or variables (columns). Adding columns is straightforward as these vectors have just a single element type. Rows or observations are more tricky as they likely have multiple element types (integers, characters etc) (consider the rules of coercion). Solution here is to create a small, 1 row dataframe, _where you specify the column names_.   
+
+```{r} 
+my.data
+
+mark <- c(37.5, 34.75, 34.25, 0, 0, 0.75, 0)
+carrie <- c(13.5, 22.75, 21.25, 0, 0, 0.5, 5.75)
+
+# Adding columns:
+my.data$MarkScreenTime <- mark
+my.data$CarrieScreenTime <- carrie
+
+# Remove a variable from a dataframe:
+my.data$MarkScreenTime <- NULL
+my.data$CarrieScreenTime <- NULL
+
+my.data[["MarkScreenTime"]] <- mark
+my.data[["CarrieScreenTime"]] <- carrie
+
+# or using cbind()
+my.data <- cbind(my.data, MarkScreenTime = mark, CarrieScreenTime = carrie)
+
+# Adding observation
+rogueOne <- data.frame(Title = "Rogue One", Year = 2016, Length = 133, Gross = 1051, 
+                       MarkScreenTime = 0, CarrieScreenTime = 0.25)
+rbind(my.data, rogueOne)
+
+# So three ways to add columns:
+data.frame$new.column
+data.frame[["new.column"]]
+cbind(data.frame, new.column)
+
+# One way to add rows - column names have to match.
+rbind(data.frame, new.data.frame)
+```
+
+On to Exercise 18!
+
+```{r exercise 18}
+Inspected <- c("Yes", "Yes", "No", "Yes", "No", "No", "Yes")
+cars <- cbind(df, Inspected)
+
+FordFusion <- data.frame(Year = 6, Size = "large", MPG = 27, Gearbox = "auto", Inspected = "Yes",
+                         row.names = "FordFusion")
+cars <- rbind(cars, FordFusion)
+nrow(cars)
+ncol(cars)
+str(cars)
+
+# To load in data first just do data() without assigning it.
+data("diamonds")
+diamonds <- data("diamonds")
+
+data("USJudgeRatings")
+judges <- USJudgeRatings
+judges$AVRG <- rowMeans(judges)
+
+# create a dataframe from that single column:
+avrg <- judges["AVRG"]
+```
 
