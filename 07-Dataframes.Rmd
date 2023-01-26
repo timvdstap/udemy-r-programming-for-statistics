@@ -1,0 +1,67 @@
+---
+title: "07-Dataframes"
+author: "Tim van der Stap"
+date: '2023-01-25'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Why dataframes? Because they can store elements of multiple types, unlike vectors and matrices. Vectors and matrices therefore can't store 'real data'. Lists are equally suboptimal and often cumbersome to work with. That being said, data frames _are_ actually a list - they combine vectors of the same length into the columns of a table. 
+
+```{r}
+title <- c("Star Wars", "The Empire Strikes Back", "Return of the Jedi", "The Phantom Menace", "Attack of the Clones", "Revenge of the Sith", "The Force Awakens")
+year <- c(1977, 1980, 1983, 1999, 2002, 2005, 2015)
+length.min <- c(121, 124, 133, 133, 142, 140, 135)
+box.office.mil <- c(787, 534, 572, 1027, 657, 849, 2059)
+
+my.data <- data.frame(title, year, length.min, box.office.mil)
+
+# Naming columns:
+names(my.data) <- c("Movie Title", "Release Year", "Length in Minutes", "Box Office")
+
+# stringsAsFactors determines whether character vectors are converted into factors.
+my.data <- data.frame(Title = title, Year = year, Length = length.min, Gross = box.office.mil,
+                      stringsAsFactors = FALSE)
+
+# Naming rows (not ideal practice)
+data.frame(..., row.names = ...)
+
+str(my.data)
+```
+
+Exercise 16:
+
+```{r exercise 16}
+car <- c("VolkswagenTouareg", "CitroenC3", "AudiA3", "ToyotaYaris", "KiaForte", "DaciaLogan", "NissanParejo")
+Year <- c(2, 3, 4, 5, 8, 9, 8)
+Size <- c("medium", "small", "medium", "small", "small", "medium", "extra large")
+MPG <- c(25, 47, 27, 36, 31, 2, 36)
+Gearbox <- c("manual", "manual", "auto", "auto", "manual", "manual", "auto")
+
+df <- data.frame(Year, Size, MPG, Gearbox, stringsAsFactors = TRUE)
+rownames(df) <- car
+
+# Invert the values for Gearbox:
+levels(df[, "Gearbox"]) <- c("manual", "auto")
+```
+
+```{r}
+install.packages('tidyverse')
+library(tidyverse)
+
+# General function is the read.table("file.name", sep = , header = , stringsAsFactors = ). This reads a file in table format and creates a dataframe from it. Remember that stringsAsFactors argument specifies whether all string variables have to be read in as factors or not.
+
+my.pok <- read.table("./data_files/pokRdex_comma.csv", sep = ",", header = TRUE, stringsAsFactors = F)
+
+# For .csv files, easier to use `read.csv("file.name", stringsAsFactors = )
+my.pok <- read.csv("./data_files/pokRdex_comma.csv", stringsAsFactors = F)
+
+# Shortcut to reading tab-delimited files: ?read.delim
+
+# To skip a specified number of rows: read.csv(..., skip = n). Or, if you want R to read in a specific number of rows: read.csv(..., nrows = n) (header not included)
+```
+
+

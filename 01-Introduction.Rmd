@@ -1,0 +1,5 @@
+I'll add any lessons learned here and follow along with the exercises. Most of the stuff I think I have a good grasp on but it's always good to revisit and take note of new or other ways to run code.
+
+```{r}
+
+```
