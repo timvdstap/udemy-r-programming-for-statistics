@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Why dataframes? Because they can store elements of multiple types, unlike vectors and matrices. Vectors and matrices therefore can't store 'real data'. Lists are equally suboptimal and often cumbersome to work with. That being said, data frames _are_ actually a list - they combine vectors of the same length into the columns of a table. 
 
-```{r}
+```{r 1, eval = TRUE}
 title <- c("Star Wars", "The Empire Strikes Back", "Return of the Jedi", "The Phantom Menace", "Attack of the Clones", "Revenge of the Sith", "The Force Awakens")
 year <- c(1977, 1980, 1983, 1999, 2002, 2005, 2015)
 length.min <- c(121, 124, 133, 133, 142, 140, 135)
@@ -27,14 +27,14 @@ my.data <- data.frame(Title = title, Year = year, Length = length.min, Gross = b
                       stringsAsFactors = FALSE)
 
 # Naming rows (not ideal practice)
-data.frame(..., row.names = ...)
+# data.frame(..., row.names = ...)
 
 str(my.data)
 ```
 
 Exercise 16:
 
-```{r exercise 16}
+```{r exercise 16, eval = TRUE}
 car <- c("VolkswagenTouareg", "CitroenC3", "AudiA3", "ToyotaYaris", "KiaForte", "DaciaLogan", "NissanParejo")
 Year <- c(2, 3, 4, 5, 8, 9, 8)
 Size <- c("medium", "small", "medium", "small", "small", "medium", "extra large")
@@ -48,8 +48,7 @@ rownames(df) <- car
 levels(df[, "Gearbox"]) <- c("manual", "auto")
 ```
 
-```{r}
-install.packages('tidyverse')
+```{r 2, eval = TRUE}
 library(tidyverse)
 
 # General function is the read.table("file.name", sep = , header = , stringsAsFactors = ). This reads a file in table format and creates a dataframe from it. Remember that stringsAsFactors argument specifies whether all string variables have to be read in as factors or not.
@@ -66,7 +65,7 @@ my.pok <- read.csv("./data_files/pokRdex_comma.csv", stringsAsFactors = F)
 
 To share data files. Make sure to set row.names to `FALSE`, otherwise R will add a column (X, X.1 and so on) marking each row from 1 - n. But those numbers _should not_ be part of your data! This would create too many redundant columns. 
 
-```{r}
+```{r 3, eval = TRUE}
 write.csv(data, file = , row.names = )
 write.csv(my.data, file = "MyFirstDataFrame.csv", row.names = F)
 
@@ -76,19 +75,19 @@ write.table(data, file = , row.names = )
 
 Exercise 17:
 
-```{r exercise 17}
+```{r exercise 17, eval = TRUE}
 employee <- read.csv("./data_files/employee_data.csv", stringsAsFactors = F, skip = 23, nrows = 200)
 colnames(employee) <- c("Employee number", "First name", "Last name", "Birth date", "Gender", "Job title", 
                         "Salary", "From date", "To date")
-write.csv(employee, file = "EmployeeData.csv", row.names = F)
+write.csv(employee, file = "./data_output/EmployeeData.csv", row.names = F)
 
 # Read it back in to make sure it's done correctly:
-employee <- read.csv("EmployeeData.csv", stringsAsFactors = F)
+employee <- read.csv("./data_output/EmployeeData.csv", stringsAsFactors = F)
 ```
 
 Useful ways to get a quick glimpse of what the data includes. str() gives the compact version of your data structure. summary() is a multi-purpose statistic. For numerical data is provides essential descriptive statistics. Summary() can be used on a single variable or multiple variables. 
 
-```{r}
+```{r 4, eval = TRUE}
 nrow(my.pok)
 ncol(my.pok)
 
@@ -98,7 +97,7 @@ summary(my.pok)
 
 Subsetting dataframes. To index an element, use data[row, column]. Remember that data frames are 2D lists. Consider this when indexing and subsetting. Lists can be subsetted with the $ function, and so data frames as well. 
 
-```{r subsetting dataframes}
+```{r subsetting dataframes, eval = TRUE}
 library(tidyverse)
 my.wars <- as.data.frame(starwars)
 
@@ -123,7 +122,7 @@ my.wars[c(1:14), c("name", "homeworld", "species")] # also returns a dataframe
 
 When adding observations or variables (columns). Adding columns is straightforward as these vectors have just a single element type. Rows or observations are more tricky as they likely have multiple element types (integers, characters etc) (consider the rules of coercion). Solution here is to create a small, 1 row dataframe, _where you specify the column names_.   
 
-```{r} 
+```{r 5, eval = TRUE} 
 my.data
 
 mark <- c(37.5, 34.75, 34.25, 0, 0, 0.75, 0)
@@ -159,7 +158,7 @@ rbind(data.frame, new.data.frame)
 
 On to Exercise 18!
 
-```{r exercise 18}
+```{r exercise 18, eval = TRUE}
 Inspected <- c("Yes", "Yes", "No", "Yes", "No", "No", "Yes")
 cars <- cbind(df, Inspected)
 
