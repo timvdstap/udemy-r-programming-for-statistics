@@ -1,0 +1,144 @@
+---
+title: "08-Data Manipulation"
+author: "Tim van der Stap"
+date: '2023-01-31'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+star <- starwars
+
+# filter(data, criterion) subsets data according to a set of criteria
+filter(star, species == "Droid")
+filter(star, species == "Droid" & homeworld == "Tatooine")
+#or filter(star, species == "Droid", homeworld == "Tatooine")
+
+# The | implies "OR"
+filter(star, eye_color == "red" | eye_color == "yellow" | eye_color == "orange",
+       species == "Human")
+
+# select() keeps all the variables you mention. Use : to select all columns between two columns
+select(star, name, birth_year, homeworld, species, starships)
+select(star, name, homeworld:starships)
+
+# Play around with 'starts_with' and 'ends_with':
+select(star, ends_with("color"))
+
+# Use everything() to move other selected variables/columns to the front, and then show everything else
+select(star, name, vehicles, starships, everything())
+
+# mutate() adds a variables, and preserves the rest.
+star <- mutate(star, bmi = mass/((height/100)^2))
+select(star, bmi)
+
+# transmute() adds a variable and drops the rest.
+star.trans <- transmute(star, bmi2 = mass/((height/100)^2))
+star.trans # a single extracted variable
+
+# arrange() helps arrange data by variables selected
+arrange(star, mass)
+arrange(star, desc(mass)) # from high to low
+
+# summarize() summarizes a data frame in a single result
+summarize(star, avg.height = mean(height, na.rm = TRUE)) # creates new variable avg.height as well.
+
+# group_by splits the data into specific groups
+star.species <- group_by(star, species)
+summarize(star.species, avg.height = mean(height, na.rm = T))
+
+# sample_n() extracts a random sample of a fixed number of rows
+# sample_frac() extracts a random sample of a fixed fraction of rows
+
+sample_n(star, 10)
+sample_frac(star, 0.1) # random sample 10%
+sample_frac(star, 0.1, replace = T) # For repeating observations (this is called bootstrapping)
+
+# Use %>% as the pipe operator:
+star %>%
+  group_by(species) %>%
+  summarize(count = n(), mass = mean(mass, na.rm = T)) %>%
+  filter(count > 1)
+```
+
+Exercise 19:
+
+```{r exercise 19}
+employee <- read.csv("./data_files/employee_data.csv", stringsAsFactors = F, skip = 23, nrows = 200)
+employee <- as_tibble(employee)
+employee$gender <- as.factor(employee$gender)
+employee$title <- as.factor(employee$title)
+
+# Check if data has any missing values:
+any(is.na(employee.data))
+
+# Arrange the dataset by gender, then last name, and make first_name, last_name, and gender the first three variables in the data frame. Show only the employees whose salary is higher than 70,000.
+employee.1 <- employee %>%
+  select(ends_with("name"), gender, everything()) %>%
+  filter(salary > 70000) %>%
+  arrange(gender, last_name)
+
+employee.nr <- employee %>% filter(salary > 70000) %>% select(emp_no) # or alternatively:
+employee.nr <- employee.1["emp_no"]
+
+
+# Find out how much each position (title) earns on average by gender; create a new variable that represents the average monthly figures and arrange your result by gender and average monthly salary, from largest to smallest.
+employee.money <- employee %>%
+  group_by(title, gender) %>%
+  summarize(avg.salary = mean(salary, na.rm = T)) %>%
+  mutate(monthly = avg.salary / 12) %>%
+  arrange(gender, desc(monthly))
+
+# Tidy data is consistently organized data - very important in data cleaning. Four important functions:
+# gather(), spread(), unite(), and separate()
+
+billboard <- read.csv("./data_files/billboard.csv")
+billboard <- as.tibble(billboard)
+billboard
+
+# gather(data, 
+# col.m:col.n,
+# key = "the name of the new variable that will hold the values currently mascarading as column names",
+# value = "the name of the new variable that will hold the values previously held by the fake columns.")
+# gather() function elongates the table, spread() makes them shorter and wider.
+
+billboard %>% gather(x1st.week:x76th.week, key = "week", value = "rank", na.rm = T) %>% arrange(artist.inverted)
+
+tb <- read.csv("./data_files/tb.csv")
+tb <- as.tibble(tb)
+tb
+
+tb.gathered <- tb %>% gather(m.014:f.65, key = "column", value = "cases", na.rm = T) %>% arrange(country)
+
+# separate() does it by default on the first non-numerical value.
+tb.separated <- tb.gathered %>% separate(column, into = c("sex", "age")) 
+tb.separated$age <- str_replace_all(tb.separated$age, "0", "0-")
+
+# opposite of separate is the unite() function, which comes in handy when we have 1 variable spread over two columns.
+tb.separated <- tb.separated %>% separate(age, into = c("age.low", "age.high"))
+tb.united <- tb.separated %>% unite(age.new, c("age.low", "age.high")) # sep = defaults to an underscore
+
+# spread() is the inverse to the gather() function. Useful for one observation spanning multiple rows. 
+weather <- read.csv("./data_files/weather.csv")
+weather <- as.tibble(weather)
+
+weather.spread <- spread(weather, key = element, value = value)
+weather.spread
+
+weather.untidy <- read.csv("./data_files/weather_untidy.csv")
+weather.untidy <- as.tibble(weather.untidy)
+weather.untidy <- weather.untidy %>% gather(key = day, value = value, d1:d31, na.rm = T)
+
+# load readr() for parse_number function, to select only the number from a string:
+library(readr)
+weather.b <- weather.untidy %>% mutate(day = readr::parse_number(day))
+weather.c <- weather.b %>% spread(key = element, value = value)
+weather.c <- weather.c %>% arrange(id, year, month, day)
+```
