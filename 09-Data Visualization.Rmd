@@ -1,0 +1,183 @@
+---
+title: "09-Data Visualization"
+author: "Tim van der Stap"
+date: '2023-02-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# The grammar of graphics grammatical elements are: data, aesthetics, geometries (how your data will be represented visually), facets, stats, coordinates, themes. Each of these elements (or layers) controls a specific part of the graph. Data, aesthetics and geometry are mandatory.
+
+library(tidyverse)
+
+hdi <- read.csv("./data_files/hdi-cpi.csv", stringsAsFactors = F)
+hdi <- as.tibble(hdi)
+
+sc <- ggplot(hdi, aes(CPI.2015, HDI.2015)) + geom_point(aes(color = Region), size = 3) # creates a scatterplot
+
+# facets: breaking up a plot into subplots based on a discrete! variable.
+sc + facet_grid(Region ~.) + stat_smooth()
+
+# Coordinates specify the dimensions of the graph (zooming in or out)
+sc + facet_grid(Region ~.) + stat_smooth() + coord_cartesian(xlim = c(0.75, 1))
+
+# You can supplement themes by installing the ggthemes package.
+sc + geom_point(aes(color = Region), size = 3) + stat_smooth() + 
+  theme_minimal()
+```
+
+Two types of data: categorical (describes categories/groups) and numerical data (discrete, continuous). Discrete data can be counted in a finite way. Value will be an integer (no decimal places). Continuous data is infinite and impossible to count (i.e. weight: 68.0389 kg). 
+
+Types of variables: four types - nominal, ordinal, interval, ratio. Nominal = are not numbers and cannot be meaningfully ordered (i.e. spring, winter, summer, autumn). Ordinal data = groups and categories in a strict order (i.e. ranked from negative to positive). Difference between points is not necessarily defined. Intervals = represented by numbers, no true zero. Ratio is represented by numbers, has a true (absolute) zero (0 inches = no length; temperature is ratio if expressed in Kelvin). Temperature expressed in celsius or fahrenheit is an interval. Context is important!
+
+Building histogram with ggplot:
+
+```{r histogram}
+# Histograms are great for numerical data, especially if it is continuous.
+
+library(tidyverse)
+
+df <- read.csv("./data_files/titanic.csv", stringsAsFactors = F)
+df <- as.tibble(df)
+
+df$Survived <- as.factor(df$Survived)
+df$Pclass <- as.factor(df$Pclass)
+df$Sex <- as.factor(df$Sex)
+df$Embarked <- as.factor(df$Embarked)
+df
+
+hist <- ggplot(data = df, aes(x = Age)) 
+hist + geom_histogram(binwidth = 5, color = "darkslategray",
+                      fill = "darkslategray4", alpha = 0.5) +
+  ggtitle("Age Distribution on the Titantic") +
+  labs(y = "Number of passengers", x = "Age") +
+  theme_minimal()
+```
+
+Exercise 21:
+
+```{r exercise 21}
+employees <- read.csv("./data_files/employee-data.csv", stringsAsFactors = F, skip = 23, header = TRUE)
+
+employees <- employees %>% filter(salary > 45000)
+# alternatively: filter(employees, salary > 45000)
+
+hist <- ggplot(data = employees, aes(x = salary))
+hist + geom_histogram(binwidth = 5000, color = "darkslategray",
+                      fill = "darkseagreen2", alpha = 0.5) + 
+  labs(y = "Number of employees in the salary bracket", x = "Salary") +
+  ggtitle("Salary distribution in the employee data") +
+  ggthemes::theme_economist(base_size = 12, base_family = "serif")
+```
+
+Next, the  bar chart for categorical variables (categories vs. variables we're measuring)
+
+```{r}
+bar <- ggplot(df, aes(x = Sex, fill = Survived))
+bar + geom_bar() + theme_light()+ 
+  labs(y = "Passenger Count", 
+       x = "Gender",
+       title = "Survival Rate by Gender") +
+  facet_wrap(Sex ~ Pclass) # facet_grid better suited when working with two discrete variables. 
+# Sex ~ Class means facet gender -by- passenger class.
+
+hist <- ggplot(data = df, aes(x = Age, fill = Survived))
+hist + geom_histogram(binwidth = 5, color = "white") + 
+  labs(y = "Number of Passengers",
+       x = "Age", 
+       title = "Age distribution on the Titanic") +
+  theme_light()
+```
+
+Exercise 22:
+
+```{r exercise 22}
+employees <- read.csv("./data_files/employee-data.csv", stringsAsFactors = F, skip = 23, header = TRUE)
+
+employees <- as.tibble(employees)
+employees$title <- as.factor(employees$title)
+employees$gender <- as.factor(employees$gender)
+
+bar <- ggplot(data = employees, aes(x = title, fill = gender))
+bar + geom_bar() + theme_minimal() +
+  labs(title = "Job positions by gender", y = "Employee count", x = "Job Position") + 
+  scale_fill_manual(values = c("darkslategray4", "darkseagreen2")) +
+  theme(legend.position = c(0.9, .85)) # 0.9 is from left to right, 0.85 from bottom to top.
+```
+
+A boxplot represents grouped numerical data in terms of quartiles. They usually show: highest and lowest data point, median, and third and first quartile. Vertical lines mark the observations within 1.5 Inter Quartile Range (IQR) of the first and third quartiles. `coef` within geom_boxplot() changes the interquartile range. Values beyond the lines are outliers.
+
+
+```{r}
+library(tidyverse)
+
+my.box <- ggplot(df, aes(x = Survived, y = Age))
+my.box + geom_boxplot() +
+  labs(title = "Survival Rate on the Titanic Based on Age") +
+  theme_light()
+
+my.box + geom_boxplot(outlier.colour = "darkslategray4", outlier.shape = 4) + 
+  geom_jitter(width = 0.2, aes(color = Sex)) + 
+  labs(title = "Survival Rate on the Titanic Based on Age and Gender") + 
+  theme_light() +
+  coord_flip()
+```
+
+Exercise 23:
+
+```{r}
+employees <- ggplot(employees, aes(x = title, y = salary))
+employees + geom_boxplot(outlier.colour = "red", outlier.shape = 4) +
+  geom_jitter(width = 0.4, aes(color = gender)) +
+  labs(title = "Salary distribution", subtitle = "based on position and gender",
+       x = "Position", y = "Salary") + 
+  theme(legend.position = "right", axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Scatterplots are next. The scatterplot is the visual representation of the relationship between two numerical variables:
+
+
+```{r}
+library(tidyverse)
+
+sp <- ggplot(hdi, aes(x = CPI.2015, y = HDI.2015))
+sp + geom_point(aes(color = Region), shape = 21,
+                fill = "white", size = 3, stroke = 2) + theme_light() +
+  labs(x = "Corruption Perception Index, 2015", 
+       y = "Human Development Index, 2015", 
+       title = "Corruption and Human Development") +
+ # stat_smooth(se = FALSE) 
+  stat_density2d() # good for overpopulated canvases
+```
+
+Exercise 24:
+
+```{r}
+realestate <- read.csv("./data_files/real_estate.csv", stringsAsFactors = F)
+
+realestate <- ggplot(data = realestate, aes(x = Area..ft.., y = Price))
+realestate + geom_point(aes(color = Building.Type), size = 2, alpha = 0.4) + 
+  guides(scale = "none") +
+  theme(legend.position = c(0.1, 0.75)) +
+  labs(title = "Price of Real Estate by Area (sq ft)",
+       subtitle = "By building type",
+       y = "Price",
+       x = "Area (sq")
+
+install.packages("wesanderson")
+library("wesanderson")
+names(wes_palettes) # most palettes only have 4 to 5 colours.
+realestate + geom_point(aes(color = factor(Building.Type), 
+                            size = 2), 
+                        alpha = 0.4) +
+  guides(size = "none") +
+  labs(color = "Building Type") +
+  scale_color_manual(values = wes_palette(name = "Darjeeling1", n = 5)) # n is the number of colors we require.
+```
+
+
+
