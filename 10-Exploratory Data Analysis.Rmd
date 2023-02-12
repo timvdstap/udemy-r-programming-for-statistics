@@ -1,0 +1,168 @@
+---
+title: "10- Exploratory Data Analysis"
+author: "Tim van der Stap"
+date: '2023-02-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+ny <- c(1, 2, 3, 3, 5, 6, 7, 8, 9, 11)
+la <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+pizza <- data_frame(ny, la)
+pizza
+
+mean(pizza$ny)
+mean(pizza$la)
+
+# Median is the middle number in an ordered(!) dataset. Not affected by outliers (unlike mean). 
+median(pizza$ny)
+
+# Mode is the value that occurs most often: R doesn't have a built-in function.
+x <- table(pizza$ny)
+x # This is a contingency table = shows the frequency distribution of the data. Useful for categorical data. Multiple modes are OK, but more than 3 modes defeats the purpose. 
+names(x)[which(x==max(x))]
+
+summary(pizza)
+
+# Skewness indicates whether the observations in a dataset are concentrated to one side.
+
+col.1 <- c(1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5, 7)
+col.2 <- c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7)
+col.3 <- c(1, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7)
+
+df <- data_frame(col.1, col.2, col.3)
+summary(df)
+
+# Mean > median: positive skew (or right skew). The direction of the skew is counter-intuitive. It is determined by the side the tail(!) is leaning to. So the outliers are to the right.
+pl.1 <- ggplot(df, aes(x = col.1)) +
+  geom_histogram(binwidth = 1, color = "white", fill = "red4") +
+  theme_light() + labs(title = "Positive Skew")
+
+# Mean = median: completely symmetrical. 
+pl.2 <- ggplot(df, aes(x = col.2)) +   
+  geom_histogram(binwidth = 1, color = "white", fill = "red4") +
+  theme_light() + labs(title = "Zero Skew")
+
+# Mean < median: negative (or left) skew: Tail/outliers to the left.
+pl.3 <- ggplot(df, aes(x = col.3)) +
+  geom_histogram(binwidth = 1, color = "white", fill = "red4") +
+  theme_light() + labs(title = "Negative Skew")
+
+# Skewness is the link between central tendency measures and probability theory.
+```
+
+Exercise 25:
+
+```{r}
+skew_1 <- read.csv("./data_files/skew_1.csv", stringsAsFactors = F)
+skew_2 <- read.csv("./data_files/skew_2.csv", stringsAsFactors = F)
+
+summary(skew_1)
+# Median < Mean, so there is a positive skew (or right skew).
+pl.skew_1 <- ggplot(data = skew_1, aes(x = Dataset.1)) +
+  geom_histogram(binwidth = 50, color = "white", fill = "red4") + 
+  theme_light()
+
+summary(skew_2)
+# Median > Mean, so there is a negative skew (or left skew)
+pl.skew_2 <- ggplot(data = skew_2, aes(x = Dataset.2)) +
+  geom_histogram(binwidth = 50, color = "white", fill = "red4") +
+  theme_light()
+```
+
+Measures of variability: variance, standard deviation and coefficient of variation. These are univariate units of dispersion (not for interactions). 
+
+_Variance_ measures the dispersion of a set of data points around their mean value. The closer x is to the mean, the smaller the variance. 
+_Standard deviation_ = the square root of the variance.
+_Coefficient of variation_ = relative standard deviation. Standard deviation relative to the mean (so standard deviation / mean). 
+
+The _apply(...)_ family is great for running operations in a repetitive way, from element to element, but without having to write loops to do so. 
+_lapply(...)_ applies the function you pass to every element in a list. You can use _lapply(...)_ to run the same code on every column in a dataframe and get a list with the results. 
+_sapply(...)_ does essentially the same but returns the results in the same structure you provide (i.e. if you provide your data in a dataframe, it will provide you the results in a dataframe). 
+
+```{r}
+pizza <- as_tibble(pizza)
+pizza$ny.mxn <- c(18.81, 37.62, 56.43, 56.43, 94.05, 112.86, 131.67, 150.48, 169.29, 206.91)
+
+lapply(pizza, mean)
+sapply(pizza, mean)
+
+sapply(pizza, var)
+sapply(pizza, sd)
+coef.var <- sapply(pizza, sd)/sapply(pizza, mean)
+coef.var
+```
+
+Multivariate measures: covariance and correlation coefficient. 
+
+
+```{r}
+homes <- read.csv("./data_files/landdata-states.csv", stringsAsFactors = F)
+homes <- as_tibble(homes)
+
+# Correlated:
+homes %>% subset(Date == 2001.25) %>% ggplot(aes(y = Structure.Cost,
+                                                 x = log(Land.Value))) +
+  geom_point() + theme_light() + labs(x = "Land Value (transformed)",
+                                      y = "Structure Cost (USD)",
+                                      title = "Relationship between land value and structure cost.")
+
+# Covariance gives us a sense of direction in which the two variables are moving. Positive = in the same direction. Opposite direction = negative sign. If movements are independent, covariance is 0. Comparison is meaningless. Covariance value is dependent on the scale on which the values are recorded. --> correlation coefficient: adjusts the covariance value, making it easy to interpret (standardizes covariance). 
+
+# Correlation coefficient (will be between -1 < correlation < 1)
+cor(homes$Structure.Cost, homes$Land.Value)
+
+# Correlation coefficient = 1 = perfect positive correlation. The entire variability of one variable is explained by the other variable. Observations would form straight line in the plot. 
+# Correlation coefficient = 0: no correlation. No relationship between variables, completely independent. 
+# Correlation coefficient = -1: perfect negative correlation. 
+cor.test(homes$Structure.Cost, homes$Land.Value)
+```
+
+Exercise 26:
+
+```{r}
+customer <- read.csv("./data_files/practical_customer.csv", stringsAsFactors = F)
+customer <- as_tibble(customer)
+
+product <- read.csv("./data_files/practical_product.csv", stringsAsFactors = F)
+product <- as_tibble(product)
+
+summary(customer)
+summary(product)
+
+# Customer.ID is character, Mortgage is character, and year of sale is year from 2004 - 2010.
+plot <- ggplot(data = product, aes(x = Price)) +
+  geom_histogram(binwidth = 100000) + theme_light()
+
+# Mean is larger than the median, so there is a positive skew (tail to the right). Graph indeed shows this.
+plot.2 <- ggplot(data = product, aes(y = Price,
+                                     x = Area..ft..)) +
+  geom_point() + theme_light()
+# Positive correlation between area (sq ft) and price. 
+
+# mean
+mean(product$Price) # 281171.9
+
+# median
+median(product$Price) # 249075.7
+
+# mode
+x <- table(product$Price)
+names(x)[which(x==max(x))] # 460001.256
+
+# skewness
+# Mean > median, so there is positive skewness (right skew)
+
+# standard deviation
+sd(product$Price) #89119.12
+
+# Correlation between Price and Area:
+cor(product$Price, product$Area..ft..) # 0.9510874. As expected based on scatterplot.
+```

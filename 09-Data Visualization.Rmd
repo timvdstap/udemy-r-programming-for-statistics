@@ -140,7 +140,6 @@ employees + geom_boxplot(outlier.colour = "red", outlier.shape = 4) +
 
 Scatterplots are next. The scatterplot is the visual representation of the relationship between two numerical variables:
 
-
 ```{r}
 library(tidyverse)
 
